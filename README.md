@@ -3,7 +3,7 @@
     var changes = require("CouchDBChanges");
     changes.follow("database", function(change) {
        // do whatever you want with the change.
-    });
+    }, { url: "http://127.0.0.1:5984/database/"});
 
 Wow, easy!
 
@@ -48,12 +48,11 @@ We should collect nice examples, but for now you can check out
  * `database`: (string) name of the database
  * `change_cb`: (callable) function to call for each change
  * `follow_options`: (object) configurations for following {
-     persistent_since: (bool) false whether or not to persist the latest
+   * persistent_since: (bool) false whether or not to persist the latest
      `seq_id` from the server. This allows us to avoid processing a
      change more than once.
  }
- * `changes_options`:  (object) parameters for CouchDB’s `_changes` API.
-   See <http://wiki.apache.org/couchdb/HTTP_database_API#Changes>.
+ * `changes_options`:  (object) parameters for the [follow library](follow).
 
 
 ## Next?
@@ -64,10 +63,11 @@ We should collect nice examples, but for now you can check out
 ## Thanks
 
 This is just a very thin wrapper around Jason Smith’s / Iris Couch’s
-excellent [`follow` library](https://github.com/iriscouch/follow).
+excellent [`follow` library](follow).
 
 Thanks Jason!
 
+[follow]: https://github.com/iriscouch/follow
 
 ## License & Copyright
 
