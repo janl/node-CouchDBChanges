@@ -1,0 +1,18 @@
+{
+    "name": "CouchDBChanges",
+    "version": "0.0.1",
+    "author": {
+        "name": "Jan Lehnardt",
+        "email": "jan@apache.org"
+    },
+    "description": "Write CouchDB Changes Handlers. Easy.",
+    "keywords": ["couchdb", "changes"],
+    "homepage": "http://github.com/janl/couchdb-external-CouchDBChanges",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/janl/couchdb-external-CouchDBChanges"
+    },
+    "engines": [ "node" ], 
+    "main": "./CouchDBChanges.js"
+}
+
