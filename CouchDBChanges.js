@@ -11,7 +11,6 @@ CouchDBChanges.prototype.follow = function(
     follow_options,
     changes_options) {
 
-  console.warn("in followChanges");
   follow_options = follow_options || {};
   changes_options = changes_options || {};
 
