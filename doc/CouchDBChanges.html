@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><title>CouchDBChanges</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="CouchDBChanges"><meta name="groc-project-path" content="CouchDBChanges.js"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">CouchDBChanges.js</div></div><div id="document"><div class="segment"></div><div class="segment"><div class="comments"><div class="wrapper"><h1 id="couchdbchanges">CouchDBChanges</h1></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="usage">Usage:</h2></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><pre><code>var CouchDBChanges = require("CouchDBChanges");
+var config = {
+  url: "http://127.0.0.1:5984/mydb",
+  filter: "pommes",
+  persistent_since: true
+};
+</code></pre></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><pre><code>var changes = new CouchDBChanges(config, function(error, change) {
+  // do dat change!
+});
+</code></pre></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="todo">TODO</h2></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><ul>
+<li>tests</li>
+<li>per-instance-persistent-since-file-name</li>
+</ul></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="dependencies">Dependencies</h2>
+
+<ul>
+<li>follow (npm install follow)</li>
+<li>fs (bult-in)</li>
+</ul></div></div><div class="code"><div class="wrapper"><span class="kd">var</span> <span class="nx">follow</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;follow&quot;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;fs&quot;</span><span class="p">);</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="the-public-api">The Public API</h2>
+
+<p>The public module name is <code>CouchDBChanges</code>
+Get an instance by doing:
+    var changes = new CouchDBChanges({}, function(error, change) {});</p></div></div><div class="code"><div class="wrapper"><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">CouchDBChanges</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nx">CouchDBChanges</span><span class="p">(</span><span class="nx">config</span><span class="p">,</span> <span class="nx">cb</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">cb</span> <span class="o">=</span> <span class="nx">cb</span><span class="p">;</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">readSince</span><span class="p">();</span>
+
+  <span class="nx">follow</span><span class="p">(</span><span class="nx">config</span><span class="p">,</span> <span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">changesCallback</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h3 id="the-change-callback">The Change Callback</h3>
+
+<p>This function gets called for every change in the database.
+The change may be null, and we ignore that for now.
+The <code>change</code> argument is of the format:</p>
+
+<pre><code>{
+    seq: 1,
+    id: "dca94a422db82506091d789d06b1300a",
+    changes: [{"rev":"1-ee9f6703bfe4e714f2ba378919fa2a2c"}]
+}
+</code></pre>
+
+<p>We pass the <code>error</code> and <code>change</code> arguments to the user-provided
+callback.
+When that’s done, we record the current sequence so we don’t
+process this change twice.</p></div></div><div class="code"><div class="wrapper"><span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">changesCallback</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span> <span class="nx">change</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">change</span> <span class="o">===</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">cb</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span> <span class="nx">change</span><span class="p">);</span>
+    <span class="cm">/* successfully processed the change,</span>
+<span class="cm">       we can now record the seq */</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">writeSince</span><span class="p">(</span><span class="nx">change</span><span class="p">.</span><span class="nx">seq</span><span class="p">);</span>
+<span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="internals">Internals</h2></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h3 id="readsince">ReadSince</h3>
+
+<p>This method checks whether the configuration states
+that the sequence id should be recorded. If yes,
+it reads and returns the current numner using the
+<code>doReadSince()</code> method.
+Otherwise, it returns <code>0</code> (zero).</p></div></div><div class="code"><div class="wrapper"><span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">readSince</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">persistent_since</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">since</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">doReadSince</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">since</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h3 id="writesince">WriteSince</h3>
+
+<p>This method mirrors <code>readSince()</code>. It checks whether
+the configuration requires to record the sequence number.
+If yes, it writes out the passed in sequence number using
+the <code>doWriteSince()</code> method.</p></div></div><div class="code"><div class="wrapper"><span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">writeSince</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">seq</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">persistent_since</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">doWriteSince</span><span class="p">(</span><span class="nx">seq</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h3 id="dowritesince">doWriteSince</h3>
+
+<p>This method handles the reading from the file of the
+recorded sequence number. It uses <code>fs.readFileSync()</code>
+to do the read operation. Due to the fact that Node.js
+operates single-threaded and this read operation is
+synchronous, we know we will read the full file’s
+contents in one go and don’t end up with any
+intermediate garbage. This is a good thing.</p>
+
+<p>When processing <em>a lot</em> of changes and having
+<em>a lot</em> of sequence numbers persisted, this should
+be swapped out for an asynchrnous version.</p></div></div><div class="code"><div class="wrapper"><span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">doReadSince</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">since</span><span class="p">;</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nx">since</span> <span class="o">=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="s2">&quot;since&quot;</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">since</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">since</span><span class="p">;</span>
+<span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h3 id="dowritesince">doWriteSince</h3>
+
+<p>This method mirrors the <code>doReadSince()</code> method. It handles
+the writing to the file of the recorded sequence number.</p>
+
+<p>See <code>doReadSince</code> for a discussion on safe reads and
+performance under high load.</p></div></div><div class="code"><div class="wrapper"><span class="nx">CouchDBChanges</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">doWriteSince</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="nx">fs</span><span class="p">.</span><span class="nx">writeFileSync</span><span class="p">(</span><span class="s2">&quot;since&quot;</span><span class="p">,</span> <span class="nx">value</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">);</span>
+<span class="p">}</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><h2 id="future-work">Future Work</h2>
+
+<p>the file where we record the change sequence number
+needs to be chosen carefully:
+ - multiple changes handler might run within a single Node.js process
+ - multiple Node.js processes might run on a single server
+ - A Node.js process might restart, we need it to find the right
+   file for each changes handler.</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Currently, the file is called <code>since</code> and runs in the CWD of the Node.js process. Clearly this isn't sufficient.</p></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>On environments like Heroku where no file system access is permitted, the change sequence number needs to be stored in a database (current state of research, TBD: look for alternatives).</p></div></div></div></div></body></html>

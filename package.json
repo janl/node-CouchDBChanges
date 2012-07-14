@@ -1,6 +1,6 @@
 {
     "name": "CouchDBChanges",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "author": {
         "name": "Jan Lehnardt",
         "email": "jan@apache.org"
@@ -16,6 +16,12 @@
     "main": "./CouchDBChanges.js",
     "dependencies": {
         "follow": "0.8.0"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
+    "devDependencies": {
+        "mocha": "*",
+        "groc": "*"
     }
 }
-
